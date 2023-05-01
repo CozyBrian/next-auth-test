@@ -13,6 +13,7 @@ export default function Home() {
     >
       Hello {session && session.user.name}
       <Link className='text-xl' href={"/admin"} >Admin</Link>
+      <Link className='text-xl' href={"/notes"} >Notes</Link>
       <div>
         {
           session ? (

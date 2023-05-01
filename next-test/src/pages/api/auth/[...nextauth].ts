@@ -16,7 +16,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error("No credentials.");
         }
         const user = await axios.post("http://localhost:3001/v1/auth/login", credentials).then(res => res.data);
-        console.log(user);
         return user; 
       }
     })
