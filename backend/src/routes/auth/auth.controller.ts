@@ -5,10 +5,21 @@ import bcrypt from "bcrypt";
 import { IUser, IUserPayload } from "../../types";
 import { createNewUser, getUserByEmail, isUserExists } from "../../models/users/user.model";
 import { UserSchema } from "../../models/user.schema";
-import { ifError } from "assert";
+
+type token = {
+  name: string;
+  expiresIn: string;
+  accessToken: string;
+  refreshToken: string;
+}
+
+type tokenData = {
+  id: string;
+  email: string;
+}
 
 const ATOKEN_EXPIRERY = 10; // 10 seconds
-const RTOKEN_EXPIRERY = 20; // 3 days
+const RTOKEN_EXPIRERY = 60 * 2; // 3 days
 
 const ATokenSecret = process.env.ACCESS_TOKEN_SECRET!;
 const RTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
@@ -26,7 +37,6 @@ export const postAuthLogin = async (req: Request, res: Response) => {
 
   const { value: user, error } = UserSchema.validate({ email: value.email, password: value.password });
   
-  if (error) return console.log("schema error",error);
   if (error) return res.status(400).json({ message: error });
   
   try {
@@ -37,28 +47,29 @@ export const postAuthLogin = async (req: Request, res: Response) => {
 
     const userdb = await getUserByEmail(user.email)
    
-      const data = { id: userdb!._id.toString(), email: userdb!.email };
+    const data = { id: userdb!._id.toString(), email: userdb!.email };
 
-      const accessToken = _generateToken(data);
-      const refreshToken = _generateRefreshToken(data);
+    const accessToken = _generateToken(data);
+    const refreshToken = _generateRefreshToken(data);
 
-      const now = new Date();
-      now.setSeconds(now.getSeconds() + ATOKEN_EXPIRERY);
+    const now = new Date();
+    now.setSeconds(now.getSeconds() + ATOKEN_EXPIRERY);
 
-      const token = {
-        name: userdb!.username,
-        expiresIn: now.toISOString(),
-        accessToken,
-        refreshToken,
-      }
+    const token = {
+      name: userdb!.username,
+      expiresIn: now.toISOString(),
+      accessToken,
+      refreshToken,
+    }
 
-      if (await bcrypt.compare(user.password, userdb!.password)) {
-        return res.status(200).send(token);
-      } else {
-        return res.status(401).send({
-          error: "WRONG_PASSWORD"
-        });
-      }
+    if (await bcrypt.compare(user.password, userdb!.password)) {
+      res.cookie('test.token', refreshToken, { httpOnly: true, maxAge: RTOKEN_EXPIRERY * 1000, sameSite: 'strict' });
+      return res.status(200).send(token);
+    } else {
+      return res.status(401).send({
+        error: "WRONG_PASSWORD"
+      });
+    }
 
   } catch (error) {
     return res.status(500).send({ error: error });
@@ -107,25 +118,38 @@ export const PostAuthSignUp = async (req: Request, res: Response) => {
   }
 }
 
-export const postAuthRefresh = async (req: Request, res: Response) => {
-  const refreshToken = req.body.refreshToken;
+export const getAuthLogout = async (req: Request, res: Response) => {
+  try {
+    const cookies = req.cookies;
+    if (cookies['test.token'] === undefined) {
+      return res.sendStatus(204);
+    }
+
+    // TODO: Delete refresh token from database
+
+    res.clearCookie('test.token');
+    return res.sendStatus(204);
+
+  } catch (error) {
+    
+  }
+}
+
+export const getAuthRefresh = async (req: Request, res: Response) => {
+  const refreshToken = req.cookies['test.token'];
 
   if (refreshToken === undefined || refreshToken === "") {
-    return res.status(401).send({ error: "Unauthorized" });
+    return res.sendStatus(403);
   }
     
   jwt.verify(refreshToken, RTokenSecret, (err: any, user: any) => {
-    if (err) {
-      return res.status(401).send({
-        error: "Unauthorized"
-      });
-    }
+    if (err) return res.sendStatus(403);
 
     const accessToken = _generateToken({ id: user.id, email: user.email });
 
     const now = new Date();
     now.setSeconds(now.getSeconds() + ATOKEN_EXPIRERY);
-
+    
     res.send({ accessToken, expiresIn: now.toISOString() })
   });
 }
