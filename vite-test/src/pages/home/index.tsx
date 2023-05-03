@@ -12,7 +12,7 @@ export default function Home() {
     >
       <h1 className='text-3xl mb-72'>Home Page</h1>
       <p>
-        Hello <span className='text-sky-500'>{session.user}</span>
+        Hello <span className='text-sky-500'>{session.user}!</span>
       </p>
       <Link className='text-xl' to={"/admin"} >Admin</Link>
       <Link className='text-xl' to={"/notes"} >Notes</Link>
