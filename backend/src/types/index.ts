@@ -5,6 +5,13 @@ export interface IUser {
   username: string;
 }
 
+export interface INote {
+  _id?: string;
+  title: string;
+  description: string;
+  userId: string;
+}
+
 export interface IUserPayload {
   id: string;
   email: string;

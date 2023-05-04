@@ -4,7 +4,8 @@ import User from "./user.mongo";
 export const createNewUser = async (user: IUser) => {
   try {
     const newUser = new User(user);
-    return await newUser.save();
+    const sUser = await newUser.save();
+    return sUser.toJSON();
   } catch (error) {
     console.log(error);
     throw error;

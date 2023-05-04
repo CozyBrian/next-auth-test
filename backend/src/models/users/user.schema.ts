@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { IUser } from "../types";
+import { IUser } from "../../types";
 
 export const UserSchema = Joi.object<IUser>({
   email: Joi.string().email().required(),

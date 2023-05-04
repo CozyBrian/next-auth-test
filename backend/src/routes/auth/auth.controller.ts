@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 
 import { IUser, IUserPayload } from "../../types";
 import { createNewUser, getUserByEmail, isUserExists } from "../../models/users/user.model";
-import { UserSchema } from "../../models/user.schema";
+import { UserSchema } from "../../models/users/user.schema";
 
 type token = {
   name: string;
@@ -18,13 +18,13 @@ type tokenData = {
   email: string;
 }
 
-const ATOKEN_EXPIRERY = 10; // 10 seconds
-const RTOKEN_EXPIRERY = 60 * 2; // 3 days
+const ATOKEN_EXPIRERY = 60 * 5; // 5 minutes
+const RTOKEN_EXPIRERY = 60 * 2; // 2 minutes
 
 const ATokenSecret = process.env.ACCESS_TOKEN_SECRET!;
 const RTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
 
-function _generateToken(data: IUserPayload) {
+export function _generateToken(data: IUserPayload) {
   return jwt.sign(data, ATokenSecret,{ expiresIn: `${ATOKEN_EXPIRERY}s` });
 }
 
