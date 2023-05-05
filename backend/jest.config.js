@@ -4,5 +4,6 @@ module.exports = {
   testEnvironment: 'node',
   testMatch: ["**/**/*.test.ts"],
   verbose: true,
+  clearMocks: true,
   // forceExit: true,
 };
