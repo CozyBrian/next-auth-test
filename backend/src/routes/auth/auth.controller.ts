@@ -63,7 +63,7 @@ export const postAuthLogin = async (req: Request, res: Response) => {
     }
 
     if (await bcrypt.compare(user.password, userdb!.password)) {
-      res.cookie('test.token', refreshToken, { httpOnly: true, maxAge: RTOKEN_EXPIRERY * 1000, sameSite: 'strict' });
+      res.cookie('test.token', refreshToken, { httpOnly: true, maxAge: RTOKEN_EXPIRERY * 1000, sameSite: 'none', secure: true });
       return res.status(200).send(token);
     } else {
       return res.status(401).send({

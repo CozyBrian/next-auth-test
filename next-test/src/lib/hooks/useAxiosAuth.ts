@@ -11,10 +11,19 @@ const useAxiosAuth = () => {
 
   useEffect(() => {
     const requestIntercept = axiosAuth.interceptors.request.use((config) => {
+      const controller = new AbortController();
+
+      if (session?.user.accessToken === undefined) {
+        controller.abort("Token is undefined");
+      }
+
       if (!config.headers["Authorization"]) {
         config.headers["Authorization"] = `Bearer ${session?.user.accessToken}`;
       }
-      return config;
+      return {
+        ...config,
+        signal: controller.signal,
+      };
     }, (error) => Promise.reject(error));
 
     const responseIntercept = axiosAuth.interceptors.response
